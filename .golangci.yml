@@ -1,0 +1,38 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - loglinter
+
+rules:
+  lower-case: true
+  spec-symbols: true
+  check-english: true
+  sensitive-data: true
+
+patterns:
+  sensitive-keywords:
+    - password
+    - passwd
+    - pwd
+    - api_key
+    - apikey
+    - api-key
+    - secret
+    - credential
+    - credentials
+    - private_key
+    - privatekey
+    - private-key
+    - access_token
+    - accesstoken
+    - refresh_token
+    - refreshtoken
+    - bearer
+    - aws_secret
+    - db_password
+    - database_password
+    - token
+  patterns:
+    - (?i)%s\s*[:=]\s*
