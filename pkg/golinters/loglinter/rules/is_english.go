@@ -12,5 +12,5 @@ func IsEnglish(message string) bool {
 }
 
 func isBasicLatin(r rune) bool {
-	return r >= 32 && r <= unicode.MaxASCII
+	return r >= 32 && r <= unicode.MaxASCII || unicode.IsPunct(r) || unicode.IsSpace(r)
 }

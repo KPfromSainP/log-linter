@@ -1,10 +1,10 @@
 package rules
 
 import (
-	"github.com/KPfromSainP/log-linter/pkg/analyzers/config"
+	"github.com/KPfromSainP/log-linter/pkg/golinters/config"
 )
 
-func ContainsSensitiveData(message string) bool {
+func IsSensitiveData(message string) bool {
 	for _, re := range config.GetPatterns() {
 		if re.MatchString(message) {
 			return true
