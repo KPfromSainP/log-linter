@@ -1,6 +1,6 @@
 # log-linter — плагин для golangci-lint
 
-![Release](figure/alotgophers.png)
+![Release](figure/samurai.png)
 
 **MyCustomLinter** — это пользовательский линтер для Go, реализованный в виде динамического плагина для [golangci-lint](https://golangci-lint.run/). Он проверяет код на специфические ошибки, связанные с [опишите кратко, что проверяет линтер, например: использованием английских идентификаторов в коде].
 
