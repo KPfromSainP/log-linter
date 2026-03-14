@@ -1,4 +1,4 @@
-package plugin
+package main
 
 import (
 	"github.com/KPfromSainP/log-linter/pkg/golinters/loglinter"

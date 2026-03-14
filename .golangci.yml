@@ -1,5 +1,21 @@
 version: "2"
 
+destination: ./plugin
+
+plugins:
+  - module: 'github.com/example/plugin2'
+    import: 'github.com/example/plugin4/foo'
+    path: /home/sir_kirill/projects/go-linter/plugin/loglinter.so
+
+
+#plugins:
+#  enable:
+#    - loglinter
+#  local:
+#    path: /home/sir_kirill/projects/go-linter/plugin/loglinter.so
+#    description: "Checks log messages"
+#    original-url: github.com/KPfromSainP/log-linter
+
 linters:
   default: none
   enable:
