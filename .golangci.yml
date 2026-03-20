@@ -1,11 +1,11 @@
 version: "2"
 
-destination: ./plugin
+#destination: ./plugin
 
-plugins:
-  - module: 'github.com/example/plugin2'
-    import: 'github.com/example/plugin4/foo'
-    path: /home/sir_kirill/projects/go-linter/plugin/loglinter.so
+#plugins:
+#  - module: 'github.com/example/plugin2'
+#    import: 'github.com/example/plugin4/foo'
+#    path: /home/sir_kirill/projects/go-linter/plugin/loglinter.so
 
 
 #plugins:
@@ -17,6 +17,13 @@ plugins:
 #    original-url: github.com/KPfromSainP/log-linter
 
 linters:
+  settings:
+    custom:
+      loglinter:
+        type: goplugin
+        path: ./loglinter.so
+        description: The description of the linter
+
   default: none
   enable:
     - loglinter

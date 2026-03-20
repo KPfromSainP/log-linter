@@ -5,6 +5,6 @@ import (
 	"golang.org/x/tools/go/analysis"
 )
 
-var AnalyzerPlugin = map[string]*analysis.Analyzer{
-	"loglinter": loglinter.Analyzer,
+func New(conf any) ([]*analysis.Analyzer, error) {
+	return []*analysis.Analyzer{loglinter.Analyzer}, nil
 }

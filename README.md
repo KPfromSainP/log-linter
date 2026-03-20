@@ -1,74 +1,109 @@
-# log-linter — плагин для golangci-lint
+# log-linter
 
-![Release](figure/samurai.gif)
+![Preview](figure/samurai.gif)
 
-**MyCustomLinter** — это пользовательский линтер для Go, реализованный в виде динамического плагина для [golangci-lint](https://golangci-lint.run/). Он проверяет код на специфические ошибки, связанные с [опишите кратко, что проверяет линтер, например: использованием английских идентификаторов в коде].
+log-linter - это Go-анализатор для проверки текстов логов в вызовах:
+
+- slog.Info, slog.Error, slog.Warn, slog.Debug
+- zap.Logger.Info, Error, Warn, Debug, Fatal
+
+Инструмент можно использовать:
+
+- как плагин для golangci-lint
+- как отдельный анализатор через singlechecker
+
+## Что проверяет линтер
+
+Проверки настраиваются в .golangci.yml через секции rules и patterns.
+
+Поддерживаемые правила:
+
+- lower-case: сообщение должно начинаться с маленькой буквы
+- check-english: сообщение должно быть в ASCII (без кириллицы и других не-ASCII символов)
+- spec-symbols: в сообщении разрешены только буквы, цифры и пробелы
+- sensitive-data: поиск чувствительных данных по шаблонам
+
+Для sensitive-data используются:
+
+- sensitive-keywords: список ключевых слов (password, token и т.д.)
+- patterns: список шаблонов regexp с %s для подстановки ключевого слова
+
+Для правил lower-case и spec-symbols добавляются SuggestedFixes.
 
 ## Требования
 
-- Go 1.22 и выше
-- golangci-lint версии **1.54.0 или выше**
-- При использовании плагина **CGO должна быть включена** (установите `CGO_ENABLED=1`)
+- Go 1.25+
+- golangci-lint с поддержкой custom/module линтеров
+- при сборке .so-плагина нужен CGO_ENABLED=1
 
-## Установка плагина
+## Конфигурация golangci-lint
 
-Плагин распространяется в виде скомпилированного файла `.so`. Готовые бинарные файлы можно скачать со страницы [Releases](https://github.com/KPfromSainP/log-linter/releases).
-
-1. Перейдите в [последний релиз](https://github.com/KPfromSainP/log-linter/releases/latest).
-2. Скачайте архив.
-3. Распакуйте архив и сохраните файл `loglinter.so` в удобное место
-
-## Настройка golangci-lint
-
-Добавьте в файл конфигурации `.golangci.yml` (в корне вашего проекта) секцию `custom` с описанием вашего плагина.
-
-Пример `.golangci.yml`:
+Пример конфигурации:
 
 ```yaml
-linters-settings:
-  custom:
-    myplugin:
-      path: <путь до `loglinter.so`>
-      description: "Checks log messages"
-      original-url: github.com/KPfromSainP/log-linter
+version: "2"
 
 linters:
-  enable:
-    - loglinter  
+   settings:
+      custom:
+         loglinter:
+            type: goplugin
+            path: ./loglinter.so
+            description: Checks log messages
+
+   default: none
+   enable:
+      - loglinter
+
+rules:
+   lower-case: true
+   spec-symbols: true
+   check-english: true
+   sensitive-data: true
+
+patterns:
+   sensitive-keywords:
+      - password
+      - token
+      - api_key
+   patterns:
+      - (?i)%s\s*[:=]\s*
+```
+
+Важно: анализатор поднимается вверх по директориям и ищет .golangci.yml, поэтому правила должны быть в этом файле.
+
+Важно: `type: module` работает только с кастомно собранным бинарником `golangci-lint` (через `golangci-lint custom`). Для обычного установленного `golangci-lint` используйте `type: goplugin` и `.so` файл.
+
+## Сборка
+
+Сборка плагина для golangci-lint:
+
+```bash
+go build -buildmode=plugin -o loglinter.so ./plugin
+```
+
+Сборка standalone-утилиты:
+
+```bash
+go build -o log-linter ./cmd/log-linter
 ```
 
 ## Использование
 
-После настройки запустите golangci-lint как обычно:
+Через golangci-lint:
 
 ```bash
-golangci-lint run
+golangci-lint run ./...
 ```
 
-## Сборка из исходников
+Как standalone-анализатор:
 
-1. Клонируйте репозиторий:
-   ```bash
-   git clone git@github.com:KPfromSainP/log-linter.git
-   ```
-2. Перейдите в директорию и выполните сборку:
-   ```bash
-   cd log-linter
-   go build -buildmode=plugin -o loglinter.so ./plugin
-   ```
+```bash
+go run ./cmd/log-linter ./...
+```
 
-### Дополнительно
+## Ограничения
 
-В рамках проекта реализованы все дополнительные требования:
-
-1. **Конфигурационный файл**  
-   Добавлена поддержка настройки правил проверки через внешний конфигурационный файл (например, `secrets-config.json` или `secrets-config.yaml`).
-
-2. **Автоматическое исправление ошибок**  
-   Реализован механизм `SuggestedFixes`, который позволяет автоматически исправлять найденные уязвимости (например, заменять чувствительные данные на заглушки или комментарии).
-
-3. **Кастомные паттерны**  
-   Предоставлена возможность указывать собственные регулярные выражения и правила для поиска конфиденциальной информации (Sensitive Data), что делает инструмент гибким под любые проекты.
-
-4. **CI/CD интеграция**  
-   Настроены пайплайны для автоматической сборки и тестирования в **GitHub Actions**. При каждом пуше и pull request запускаются тесты и проверка кода.
+- проверяется только первый аргумент лог-вызова
+- извлекаются строки из literal, string const и простых конкатенаций через +
+- если конфигурация не найдена, проверки по умолчанию выключены
